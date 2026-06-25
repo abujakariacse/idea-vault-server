@@ -1,5 +1,7 @@
 const express = require('express');
 const Idea = require('../models/Idea');
+const User = require('../models/User');
+const Report = require('../models/Report');
 const { auth } = require('../middleware/auth');
 
 const router = express.Router();
@@ -60,6 +62,14 @@ router.get('/:id', async (req, res) => {
 
 router.post('/', auth, async (req, res) => {
   try {
+    const user = await User.findById(req.user.id);
+    if (user.isBanned) {
+      return res.status(403).json({ message: 'You are banned from creating ideas.' });
+    }
+    if (user.warnedUntil && new Date(user.warnedUntil) > new Date()) {
+      return res.status(403).json({ message: 'You are currently warned and cannot post ideas until ' + new Date(user.warnedUntil).toLocaleDateString() });
+    }
+
     const { title, shortDescription, detailedDescription, category, tags, image, estimatedBudget, targetAudience, problemStatement, proposedSolution } = req.body;
     const idea = new Idea({ title, shortDescription, detailedDescription, category, tags, image, estimatedBudget, targetAudience, problemStatement, proposedSolution, author: req.user.id });
     await idea.save();
@@ -148,6 +158,28 @@ router.post('/:id/dislike', auth, async (req, res) => {
       liked: false,
       disliked: dislikeIndex === -1
     });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
+router.post('/:id/report', auth, async (req, res) => {
+  try {
+    const idea = await Idea.findById(req.params.id);
+    if (!idea) return res.status(404).json({ message: 'Idea not found' });
+
+    const { reason, additionalInfo, photoUrl } = req.body;
+    
+    const report = new Report({
+      idea: idea._id,
+      reporter: req.user.id,
+      reason,
+      additionalInfo,
+      photoUrl
+    });
+
+    await report.save();
+    res.status(201).json({ message: 'Report submitted successfully', report });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }

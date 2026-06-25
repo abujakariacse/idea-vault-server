@@ -7,9 +7,11 @@ const userSchema = new mongoose.Schema({
   photo: { type: String, default: '' },
   password: { type: String },
   googleId: { type: String },
-  role: { type: String, enum: ['user', 'admin'], default: 'user' },
+  role: { type: String, enum: ['user', 'admin', 'super-admin'], default: 'user' },
   likedIdeas: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Idea' }],
-  bookmarks: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Idea' }]
+  bookmarks: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Idea' }],
+  isBanned: { type: Boolean, default: false },
+  warnedUntil: { type: Date, default: null }
 }, { timestamps: true });
 
 userSchema.pre('save', async function() {

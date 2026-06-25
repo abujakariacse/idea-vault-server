@@ -1,4 +1,5 @@
 const jwt = require('jsonwebtoken');
+const User = require('../models/User');
 
 const auth = (req, res, next) => {
   const token = req.header('Authorization')?.replace('Bearer ', '');
@@ -13,11 +14,16 @@ const auth = (req, res, next) => {
   }
 };
 
-const isAdmin = (req, res, next) => {
-  if (req.user && req.user.role === 'admin') {
-    next();
-  } else {
-    res.status(403).json({ message: 'Access denied. Admin only.' });
+const isAdmin = async (req, res, next) => {
+  try {
+    const user = await User.findById(req.user.id);
+    if (user && (user.role === 'admin' || user.role === 'super-admin')) {
+      next();
+    } else {
+      res.status(403).json({ message: 'Access denied. Admin only.' });
+    }
+  } catch (err) {
+    res.status(500).json({ message: 'Server error' });
   }
 };
 
