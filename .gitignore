@@ -1,0 +1,9 @@
+.env
+node_modules
+test-chat.js
+test-chat2.js
+test-chat3.js
+archive.zip
+.DS_Store   
+.vercel
+.env*.local
