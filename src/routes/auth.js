@@ -2,7 +2,7 @@ const express = require('express');
 const jwt = require('jsonwebtoken');
 const { OAuth2Client } = require('google-auth-library');
 const User = require('../models/User');
-const auth = require('../middleware/auth');
+const { auth } = require('../middleware/auth');
 
 const router = express.Router();
 const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
@@ -19,7 +19,9 @@ router.post('/register', async (req, res) => {
     const existing = await User.findOne({ email });
     if (existing) return res.status(400).json({ message: 'Email already exists' });
 
-    const user = new User({ name, email, photo, password });
+    let role = 'user';
+    if (email === 'admin@ideavault.com') role = 'admin';
+    const user = new User({ name, email, photo, password, role });
     await user.save();
     res.status(201).json({ message: 'Registration successful' });
   } catch (error) {
@@ -37,8 +39,8 @@ router.post('/login', async (req, res) => {
     const isMatch = await user.comparePassword(password);
     if (!isMatch) return res.status(400).json({ message: 'Invalid credentials' });
 
-    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: '7d' });
-    res.json({ token, user: { id: user._id, name: user.name, email: user.email, photo: user.photo } });
+    const token = jwt.sign({ id: user._id, role: user.role }, process.env.JWT_SECRET, { expiresIn: '7d' });
+    res.json({ token, user: { id: user._id, name: user.name, email: user.email, photo: user.photo, role: user.role } });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -52,17 +54,20 @@ router.post('/google', async (req, res) => {
 
     let user = await User.findOne({ email: payload.email });
     if (!user) {
+      let role = 'user';
+      if (payload.email === 'admin@ideavault.com') role = 'admin';
       user = new User({
         name: payload.name,
         email: payload.email,
         photo: payload.picture,
-        googleId: payload.sub
+        googleId: payload.sub,
+        role
       });
       await user.save();
     }
 
-    const jwtToken = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: '7d' });
-    res.json({ token: jwtToken, user: { id: user._id, name: user.name, email: user.email, photo: user.photo } });
+    const jwtToken = jwt.sign({ id: user._id, role: user.role }, process.env.JWT_SECRET, { expiresIn: '7d' });
+    res.json({ token: jwtToken, user: { id: user._id, name: user.name, email: user.email, photo: user.photo, role: user.role } });
   } catch (error) {
     res.status(500).json({ message: 'Google authentication failed' });
   }

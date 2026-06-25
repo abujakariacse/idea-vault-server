@@ -7,6 +7,7 @@ const userSchema = new mongoose.Schema({
   photo: { type: String, default: '' },
   password: { type: String },
   googleId: { type: String },
+  role: { type: String, enum: ['user', 'admin'], default: 'user' },
   likedIdeas: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Idea' }],
   bookmarks: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Idea' }]
 }, { timestamps: true });

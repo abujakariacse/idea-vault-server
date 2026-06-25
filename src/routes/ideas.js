@@ -1,6 +1,6 @@
 const express = require('express');
 const Idea = require('../models/Idea');
-const auth = require('../middleware/auth');
+const { auth } = require('../middleware/auth');
 
 const router = express.Router();
 
@@ -95,6 +95,13 @@ router.post('/:id/like', auth, async (req, res) => {
     if (!idea) return res.status(404).json({ message: 'Idea not found' });
 
     const likeIndex = idea.likes.indexOf(req.user.id);
+    const dislikeIndex = idea.dislikes.indexOf(req.user.id);
+
+    if (dislikeIndex > -1) {
+      idea.dislikes.splice(dislikeIndex, 1);
+      idea.dislikeCount = idea.dislikes.length;
+    }
+
     if (likeIndex > -1) {
       idea.likes.splice(likeIndex, 1);
       idea.likeCount = idea.likes.length;
@@ -103,7 +110,44 @@ router.post('/:id/like', auth, async (req, res) => {
       idea.likeCount = idea.likes.length;
     }
     await idea.save();
-    res.json({ likeCount: idea.likeCount, liked: likeIndex === -1 });
+    res.json({ 
+      likeCount: idea.likeCount, 
+      dislikeCount: idea.dislikeCount,
+      liked: likeIndex === -1,
+      disliked: false
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
+router.post('/:id/dislike', auth, async (req, res) => {
+  try {
+    const idea = await Idea.findById(req.params.id);
+    if (!idea) return res.status(404).json({ message: 'Idea not found' });
+
+    const likeIndex = idea.likes.indexOf(req.user.id);
+    const dislikeIndex = idea.dislikes.indexOf(req.user.id);
+
+    if (likeIndex > -1) {
+      idea.likes.splice(likeIndex, 1);
+      idea.likeCount = idea.likes.length;
+    }
+
+    if (dislikeIndex > -1) {
+      idea.dislikes.splice(dislikeIndex, 1);
+      idea.dislikeCount = idea.dislikes.length;
+    } else {
+      idea.dislikes.push(req.user.id);
+      idea.dislikeCount = idea.dislikes.length;
+    }
+    await idea.save();
+    res.json({ 
+      likeCount: idea.likeCount, 
+      dislikeCount: idea.dislikeCount,
+      liked: false,
+      disliked: dislikeIndex === -1
+    });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }

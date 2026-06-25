@@ -13,7 +13,9 @@ const ideaSchema = new mongoose.Schema({
   proposedSolution: { type: String },
   author: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
   likes: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
-  likeCount: { type: Number, default: 0 }
+  likeCount: { type: Number, default: 0 },
+  dislikes: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
+  dislikeCount: { type: Number, default: 0 }
 }, { timestamps: true });
 
 module.exports = mongoose.model('Idea', ideaSchema);

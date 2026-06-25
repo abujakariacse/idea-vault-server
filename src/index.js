@@ -8,6 +8,7 @@ const ideaRoutes = require("./routes/ideas");
 const commentRoutes = require("./routes/comments");
 const userRoutes = require("./routes/users");
 const chatRoutes = require("./routes/chat");
+const adminRoutes = require("./routes/admin");
 
 // Connect to MongoDB
 connectDB();
@@ -27,6 +28,7 @@ app.use("/api/ideas", ideaRoutes);
 app.use("/api/comments", commentRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/chat", chatRoutes);
+app.use("/api/admin", adminRoutes);
 
 app.use((err, req, res, next) => {
   console.error(err.stack);
