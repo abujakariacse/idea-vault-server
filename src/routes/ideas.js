@@ -94,8 +94,8 @@ router.post('/:id/like', auth, async (req, res) => {
     const idea = await Idea.findById(req.params.id);
     if (!idea) return res.status(404).json({ message: 'Idea not found' });
 
-    const likeIndex = idea.likes.indexOf(req.user.id);
-    const dislikeIndex = idea.dislikes.indexOf(req.user.id);
+    const likeIndex = idea.likes.findIndex(id => id.toString() === req.user.id);
+    const dislikeIndex = idea.dislikes.findIndex(id => id.toString() === req.user.id);
 
     if (dislikeIndex > -1) {
       idea.dislikes.splice(dislikeIndex, 1);
@@ -126,8 +126,8 @@ router.post('/:id/dislike', auth, async (req, res) => {
     const idea = await Idea.findById(req.params.id);
     if (!idea) return res.status(404).json({ message: 'Idea not found' });
 
-    const likeIndex = idea.likes.indexOf(req.user.id);
-    const dislikeIndex = idea.dislikes.indexOf(req.user.id);
+    const likeIndex = idea.likes.findIndex(id => id.toString() === req.user.id);
+    const dislikeIndex = idea.dislikes.findIndex(id => id.toString() === req.user.id);
 
     if (likeIndex > -1) {
       idea.likes.splice(likeIndex, 1);

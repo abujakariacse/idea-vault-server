@@ -22,8 +22,8 @@ router.post('/', auth, async (req, res) => {
 
     const comment = new Comment({ user: req.user.id, idea: ideaId, text });
     await comment.save();
-    await comment.populate('user', 'name photo');
-    res.status(201).json(comment);
+    const populatedComment = await Comment.findById(comment._id).populate('user', 'name photo');
+    res.status(201).json(populatedComment);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
